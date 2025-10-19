@@ -11,6 +11,7 @@ class Client(object):
     """
     A class that represents a client model in a order pick up point system
     """
+
     def __init__(self):
         self.products = 0
         self.duration = 0
@@ -20,7 +21,7 @@ class Client(object):
         """
         Generates unique values of the client parameters
         """
-        self.products = int(np.random.geometric(0.3))
         self.refused = bernoulli.rvs(0.1)
+        self.products = int(np.random.geometric(0.3)) - self.refused
         self.duration = self.refused * REFUSAL_TIME + \
-            (self.products - self.refused) * REVIEW_TIME + PAYMENT_TIME
+            self.products * REVIEW_TIME + PAYMENT_TIME

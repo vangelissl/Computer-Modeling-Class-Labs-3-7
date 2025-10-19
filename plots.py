@@ -63,7 +63,7 @@ def plot_distribution(stats_df, metric='products'):
         color='#db5b34',
         edgecolor="#963e23",
         rwidth=1.0,
-        zorder=2
+        zorder=2,
     )
 
     plt.xticks(range(data.min(), data.max() + 1, 10))
@@ -86,7 +86,7 @@ def plot_line(stats_df, metric='throughput'):
              alpha=1, color='magenta')
     plt.xlabel('Time of Day (hours)', fontsize=12)
     plt.ylabel(f'Average {metric.title()}', fontsize=12)
-    plt.title('Average',
+    plt.title(f'{metric.title()} By Time',
               fontsize=14, fontweight='bold')
     plt.xlim(9.5, 20.5)
     plt.ylim(y_bottom, y_top + (y_top - y_bottom) / 10)
