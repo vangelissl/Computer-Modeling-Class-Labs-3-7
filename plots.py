@@ -66,7 +66,7 @@ def plot_distribution(stats_df, metric='products'):
         zorder=2
     )
 
-    plt.xticks(range(data.min(), data.max() + 1))
+    plt.xticks(range(data.min(), data.max() + 1, 10))
     plt.xlabel(f'Number of {metric.title()}')
     plt.ylabel('Frequency')
     plt.title(f'{metric.title()} Distribution')
