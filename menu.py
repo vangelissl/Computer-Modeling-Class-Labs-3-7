@@ -45,6 +45,7 @@ def main_menu():
             print('7. View correlation of client metrics')
             print('8. Peek general statistics')
             print('9. Peek client logs')
+            print('10. View general statistics')
 
         print('4. Exit')
         print('-' * 33)
@@ -86,6 +87,11 @@ def main_menu():
                 if not stats.client_logs.empty:
                     clear_screen()
                     print(stats.client_logs.head())
+                    press_key()
+            case 10:
+                if not stats.df.empty:
+                    clear_screen()
+                    print(stats.df.describe())
                     press_key()
             case _:
                 command_not_found()

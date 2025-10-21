@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
 
-CLIENT_LOGS_COLUMNS = ['products', 'refused', 'duration']
+CLIENT_LOGS_COLUMNS = ['products', 'refused', 'duration', 'time waited']
 STATS_COLUMNS = ['datetime', 'clients total',
                  'products', 'refused', 'served clients', 'lost clients', 'queue', 'throughput', 'utilization']
 
@@ -13,7 +13,7 @@ class Statistics(object):
 
         self.step = step
 
-    def add_log_entry(self, products: int, refused: bool, duration):
+    def add_log_entry(self, products: int, refused: bool, duration, time_waited: int):
         """
         Adds new entry that holds a log data of certain client
         """

@@ -17,6 +17,7 @@ class PickUpPoint(object):
         self.current_time = current_time    # Current time of the simulation
         self.paydesk = Client()  # Client that is being served
         self.queue = 0  # Queue for the day
+        self.time_waited = 0  # Time client has waited in the queue
 
         # Interval specific metrics:
         self.lost_clients = 0   # Number of clients who were lost due to queue limitations
@@ -58,6 +59,8 @@ class PickUpPoint(object):
         # Calculate the current queue and lost clients who didn't fit
         self.lost_clients = (self.count_client -
                              spots_available) if overflowed else 0
+        if self.queue == 0:
+            self.time_waited = 0
         self.queue += spots_available if overflowed else self.count_client
 
     def display_intermediate_info(self):
@@ -83,10 +86,11 @@ class PickUpPoint(object):
 
                 # Log current client
                 self.statistics.add_log_entry(
-                    int(self.paydesk.products), bool(self.paydesk.refused), self.paydesk.duration)
+                    int(self.paydesk.products), bool(self.paydesk.refused), self.paydesk.duration, self.time_waited)
 
                 # Update parameters to indicate client having been served
                 self.queue -= 1
+                self.time_waited += self.paydesk.duration
                 self.served_clients += 1
                 self.paydesk.products = 0
 
@@ -102,7 +106,6 @@ class PickUpPoint(object):
                 self.paydesk.duration = -time   # Set time left to fully serve the client
                 time = 0    # Indicate end of the current interval
 
-
     def reset_metrics(self):
         """
         Resets metrics to reuse them properly on the next iteration
@@ -111,6 +114,7 @@ class PickUpPoint(object):
         self.products_total = 0
         self.total_refused = 0
         self.time_served = 0
+        self.time_waited = 0
 
     def end_shift(self):
         self.lost_clients = self.queue
