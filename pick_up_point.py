@@ -94,7 +94,7 @@ class PickUpPoint(object):
 
             while able_to_serve() and len(self.queue) > 0:
                 for worker in self.workers:
-                    if worker.is_available():
+                    if worker.is_available() and len(self.queue) > 0:
                         client = self.queue.popleft()
                         worker.assign_client(client)
                         worker.work_interval()

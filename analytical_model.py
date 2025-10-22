@@ -41,9 +41,9 @@ class AnalyticalModel():
 
         self.L_s = self.L_q + self.k_occupied
 
-        self.W_q = self.L_q / lam
+        self.W_q = self.L_q / self.A
 
-        self.W_s = self.W_q + (STEP * 60) / mu
+        self.W_s = self.L_s / self.A
 
     def calc_q_0(self, c, r, m, rho):
         q_0 = 0

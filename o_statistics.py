@@ -43,6 +43,29 @@ class Statistics(object):
         self.df = pd.concat([self.df, new_entry],
                             axis=0, ignore_index=True)
 
+    def get_averaged_data(self):
+        df = self.df
+        queue_time_avg = self.client_logs['time waited'].mean()
+        queue_size_avg = df['queue'].mean()
+        occupied_workers_avg = df['being served'].mean()
+
+        averaged_series = pd.Series({
+            'rho': df['clients total'].mean() / df['served clients'].mean(),
+            'q_0': len(df[(df['queue'] == 0) & (df['being served'] == 0)]) / len(df),
+            'p_refusal': df['lost clients'].sum() / df['clients total'].sum(),
+            'p_q': (self.client_logs['time waited'] > 0).sum() / len(self.client_logs),
+            'Q': df['utilization'].mean(),
+            'A': df['served clients'].mean(),
+            'k_occupied': occupied_workers_avg,
+            'L_q': queue_size_avg,
+            'L_s': queue_size_avg + occupied_workers_avg,
+            'W_q': queue_time_avg,
+            'W_s': queue_time_avg + self.client_logs['duration'].mean(),
+            'downtime': 1 - df['utilization'].mean()
+        })
+
+        return averaged_series
+
     def clear(self):
         self.df = pd.DataFrame(columns=self.df.columns)
         self.client_logs = pd.DataFrame(columns=self.client_logs.columns)

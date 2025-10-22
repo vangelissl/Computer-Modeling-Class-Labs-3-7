@@ -10,7 +10,7 @@ STEP = 0.25
 STEP_COUNT = 40
 
 stats = Statistics(STEP)
-PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 7)
+PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 3)
 
 
 def simulation(pup: PickUpPoint = PUP):
@@ -24,7 +24,8 @@ def simulation(pup: PickUpPoint = PUP):
 
 
 def long_term_simulation(days: int, pup=PUP):
-    for _ in range(days):
+    for i in range(days):
+        print(i+1)
         simulation(pup)
         pup.next_day()
 
@@ -94,6 +95,11 @@ def main_menu():
                     clear_screen()
                     print(stats.df.describe())
                     press_key()
+            case 11:
+                if not stats.df.empty:
+                    clear_screen()
+                    print(stats.get_averaged_data())
+                    press_key()
             case _:
                 command_not_found()
 
@@ -129,7 +135,7 @@ def create_modified_dataset():
         pup = PickUpPoint(statistics, datetime(
             2025, 1, 1, 10), STEP, number_of_workers)
         long_term_simulation(number_of_days, pup)
-        
+
 
 
 def create_dataset():
