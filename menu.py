@@ -10,7 +10,7 @@ STEP = 0.25
 STEP_COUNT = 40
 
 stats = Statistics(STEP)
-PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP)
+PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 1)
 
 
 def simulation():

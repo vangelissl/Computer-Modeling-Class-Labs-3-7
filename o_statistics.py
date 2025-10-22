@@ -3,7 +3,7 @@ from datetime import datetime
 
 CLIENT_LOGS_COLUMNS = ['products', 'refused', 'duration', 'time waited']
 STATS_COLUMNS = ['datetime', 'clients total',
-                 'products', 'refused', 'served clients', 'lost clients', 'queue', 'throughput', 'utilization']
+                 'products', 'refused', 'served clients', 'lost clients', 'being served', 'queue', 'throughput', 'utilization']
 
 
 class Statistics(object):
@@ -18,12 +18,12 @@ class Statistics(object):
         Adds new entry that holds a log data of certain client
         """
         new_info = pd.DataFrame(
-            data=[[products, refused, duration]], columns=CLIENT_LOGS_COLUMNS)
+            data=[[products, refused, duration, time_waited]], columns=CLIENT_LOGS_COLUMNS)
         self.client_logs = pd.concat(
             [self.client_logs, new_info], axis=0, ignore_index=True)
 
     def add_dataset_entry(self, time: datetime, clients_total: int, products_total: int,
-                          refused_total: int, served: int, lost: int, queue: int, time_served: int):
+                          refused_total: int, served: int, lost: int, in_service: int,  queue: int, time_served: int):
         """
         Adds new entry that holds a single time interval data
         """
@@ -35,7 +35,7 @@ class Statistics(object):
 
         new_entry = pd.DataFrame(
             data=[[time, clients_total, products_total, refused_total,
-                   served, lost, queue, throughput, utilization]],
+                   served, lost, in_service, queue, throughput, utilization]],
             columns=STATS_COLUMNS)
 
         self.df = pd.concat([self.df, new_entry],
