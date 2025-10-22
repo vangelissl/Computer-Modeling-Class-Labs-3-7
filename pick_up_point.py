@@ -27,6 +27,7 @@ class PickUpPoint(object):
         self.count_client = 0   # Number of clients who have arrived
         self.products_total = 0  # Number of products for served clients
         self.total_refused = 0  # Number of clients who refused the product
+        self.immediately_served = 0
 
         self.statistics = statistics
 
@@ -58,6 +59,7 @@ class PickUpPoint(object):
         self.count_client = np.random.poisson(Lam)
         available_workers = self.get_available()
         immediate_service_capacity = min(available_workers, self.count_client)
+        self.immediately_served = immediate_service_capacity
         # Calculate the queue overflow
         spots_available = QUEUE_LIMIT - len(self.queue)
         overflowed = spots_available < (
@@ -104,6 +106,7 @@ class PickUpPoint(object):
         self.served_clients = 0
         self.products_total = 0
         self.total_refused = 0
+        self.immediately_served = 0
 
         for worker in self.workers:
             worker.reset_metrics()
@@ -129,6 +132,6 @@ class PickUpPoint(object):
         av_time_served /= len(self.workers)
 
         self.statistics.add_dataset_entry(self.current_time, self.count_client, int(self.products_total),
-                                          self.total_refused, self.served_clients, self.lost_clients, self.in_service,
+                                          self.total_refused, self.served_clients, self.immediately_served, self.lost_clients, self.in_service,
                                           len(self.queue), int(av_time_served))
         self.reset_metrics()
