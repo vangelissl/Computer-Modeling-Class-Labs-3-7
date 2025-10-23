@@ -27,7 +27,7 @@ def plot_bar(df, metric, ax):
 
     ax.set_title(f'{metric.title()} by Number of Workers')
     ax.set_xlabel('Number of Workers')
-    ax.set_ylabel('A')
+    ax.set_ylabel(metric.title())
     ax.grid(True, zorder=1)
 
 
