@@ -5,28 +5,29 @@ from pick_up_point import PickUpPoint
 from o_statistics import Statistics
 from datetime import datetime
 from plots import plot_time_distribution, plot_distribution, plot_line
+from modified_plots import plot_metrics
 
 STEP = 0.25
 STEP_COUNT = 40
 
 stats = Statistics(STEP)
-PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP)
+PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 3)
 
 
-def simulation():
+def simulation(pup: PickUpPoint = PUP):
     for i in range(STEP_COUNT):
-        PUP.client_arrived()
-        PUP.client_service()
+        pup.client_arrived()
+        pup.client_service()
         if i == STEP_COUNT - 1:
-            PUP.end_shift()
-        PUP.end_interval_simulation()
-        PUP.increase_time()
+            pup.end_shift()
+        pup.end_interval_simulation()
+        pup.increase_time()
 
 
-def long_term_simulation(days: int):
-    for _ in range(days):
-        simulation()
-        PUP.next_day()
+def long_term_simulation(days: int, pup=PUP):
+    for i in range(days):
+        simulation(pup)
+        pup.next_day()
 
 
 def main_menu():
@@ -37,6 +38,7 @@ def main_menu():
         print('1. Create new dataset')
         print('2. Load existing dataset')
         print('3. See graphs')
+        print('11. Modified menu')
         print('-' * 33)
 
         if not stats.df.empty:
@@ -45,6 +47,7 @@ def main_menu():
             print('7. View correlation of client metrics')
             print('8. Peek general statistics')
             print('9. Peek client logs')
+            print('10. View general statistics')
 
         print('4. Exit')
         print('-' * 33)
@@ -87,8 +90,62 @@ def main_menu():
                     clear_screen()
                     print(stats.client_logs.head())
                     press_key()
+            case 10:
+                if not stats.df.empty:
+                    clear_screen()
+                    print(stats.df.describe())
+                    press_key()
+            case 11:
+                clear_screen()
+                modified_menu()
+                press_key()
             case _:
                 command_not_found()
+
+
+def modified_menu():
+    run = True
+    days = 0 
+    df = None
+    while run:
+        clear_screen()
+        print('-------------MODIFIED MENU-------------')
+        print('1. Create dataset')
+        if df is not None and not df.empty:
+            print('2. See graphs')
+            print('3. See statistics')
+        command = int(input('Choose command: '))
+        match(command):
+            case 1:
+                clear_screen()
+                df, days = create_modified_dataset()
+                press_key()
+            case 2:
+                if df is not None:
+                    plot_metrics(df, f'Imitation model results by {days} days')
+            case 3:
+                if df is not None:
+                    clear_screen()
+                    print(df.round(3))
+                    press_key()
+            case 4:
+                run = False
+
+
+def create_modified_dataset():
+    min_workers = int(input('Min workers: '))
+    max_workers = int(input('Max workers: '))
+    number_of_days = int(input('Number of days: '))
+    results = {}
+    for c in range(min_workers, max_workers + 1):
+        statistics = Statistics(STEP)
+        pup = PickUpPoint(statistics, datetime(
+            2025, 1, 1, 10), STEP, c)
+        long_term_simulation(number_of_days, pup)
+        results[f'c = {c}'] = statistics.get_averaged_data()
+
+    df_sim = pd.DataFrame(results)
+    return df_sim, number_of_days
 
 
 def create_dataset():
@@ -137,7 +194,7 @@ def load_dataset():
             filename = input('Filename: ')
             path = f'datasets\\'
             dataset_path = path + filename + '.xlsx'
-            logs_path = path + 'logs\\' + filename + '_logs.xlsx' 
+            logs_path = path + 'logs\\' + filename + '_logs.xlsx'
             stats.df = pd.read_excel(dataset_path, parse_dates=['datetime'])
             stats.client_logs = pd.read_excel(logs_path)
             print('Dataset has been loaded successfully')

@@ -1,7 +1,9 @@
 from o_statistics import Statistics
-from client import Client
 import datetime
 import numpy as np
+from worker import Worker
+from collections import deque
+from client import Client
 
 
 QUEUE_LIMIT = 15
@@ -13,10 +15,11 @@ class PickUpPoint(object):
     A class that represents a model of the order pick up point with one worker
     """
 
-    def __init__(self, statistics: Statistics, current_time: datetime.datetime, step: float):
+    def __init__(self, statistics: Statistics, current_time: datetime.datetime, step: float, c: int):
         self.current_time = current_time    # Current time of the simulation
-        self.paydesk = Client()  # Client that is being served
-        self.queue = 0  # Queue for the day
+        self.queue = deque()  # Queue for the day
+        self.immediate_service = deque()
+        self.in_service = 0
 
         # Interval specific metrics:
         self.lost_clients = 0   # Number of clients who were lost due to queue limitations
@@ -24,9 +27,12 @@ class PickUpPoint(object):
         self.count_client = 0   # Number of clients who have arrived
         self.products_total = 0  # Number of products for served clients
         self.total_refused = 0  # Number of clients who refused the product
-        self.time_served = 0    # Time of paydesk occupation
+        self.immediately_served = 0
 
         self.statistics = statistics
+
+        # Create workers
+        self.workers = [Worker(step, statistics, self) for _ in range(c)]
 
         self.step = step
 
@@ -51,57 +57,47 @@ class PickUpPoint(object):
             Lam = 8
 
         self.count_client = np.random.poisson(Lam)
+        available_workers = self.get_available()
+        immediate_service_capacity = min(available_workers, self.count_client)
+        self.immediately_served = immediate_service_capacity
         # Calculate the queue overflow
-        spots_available = QUEUE_LIMIT - self.queue
-        overflowed = spots_available < self.count_client
+        spots_available = QUEUE_LIMIT - len(self.queue)
+        overflowed = spots_available < (
+            self.count_client - immediate_service_capacity)
 
         # Calculate the current queue and lost clients who didn't fit
         self.lost_clients = (self.count_client -
-                             spots_available) if overflowed else 0
-        self.queue += spots_available if overflowed else self.count_client
+                             (spots_available + immediate_service_capacity)) if overflowed else 0
 
-    def display_intermediate_info(self):
-        print('\n*************')
-        print(self.count_client, 'client(s) arrived in the past hour')
+        size = spots_available + immediate_service_capacity if overflowed else self.count_client
+        for _ in range(size):
+            self.queue.append(Client(self.current_time))
+
+        for _ in range(immediate_service_capacity):
+            client = self.queue.popleft()
+            self.immediate_service.append(client)
 
     def client_service(self):
-        """
-        Simulates the service action for a single time interval
-        """
-        time = 60 * self.step   # Convert time to minutes
+        # Assign immediate service clients first
+        if self.immediate_service:
+            for worker in self.workers:
+                if worker.is_available() and self.immediate_service:
+                    client = self.immediate_service.popleft()
+                    worker.assign_client(client)
 
-        # Serve while there are clients during the interval
-        while self.queue > 0 and time > 0:
-            # Serve new client only if the paydesk is free
-            if self.paydesk.duration == 0:
-                # Generate the parameters of the client
-                self.paydesk.service()
+        # All workers work their intervals
+        for worker in self.workers:
+            worker.work_interval()
 
-                # Contribute current client to the statisctical metrics
-                self.products_total += self.paydesk.products
-                self.total_refused += self.paydesk.refused
+            def able_to_serve():
+                return any(w.is_available() for w in self.workers)
 
-                # Log current client
-                self.statistics.add_log_entry(
-                    int(self.paydesk.products), bool(self.paydesk.refused), self.paydesk.duration)
-
-                # Update parameters to indicate client having been served
-                self.queue -= 1
-                self.served_clients += 1
-                self.paydesk.products = 0
-
-            # Remove amount of serving time
-            time -= self.paydesk.duration
-
-            # Determine if the client has been fully served during the interval
-            if time >= 0:
-                self.time_served += self.paydesk.duration
-                self.paydesk.duration = 0   # Reset serving time
-            else:
-                self.time_served = self.step * 60
-                self.paydesk.duration = -time   # Set time left to fully serve the client
-                time = 0    # Indicate end of the current interval
-
+            while able_to_serve() and len(self.queue) > 0:
+                for worker in self.workers:
+                    if worker.is_available() and len(self.queue) > 0:
+                        client = self.queue.popleft()
+                        worker.assign_client(client)
+                        worker.work_interval()
 
     def reset_metrics(self):
         """
@@ -110,17 +106,30 @@ class PickUpPoint(object):
         self.served_clients = 0
         self.products_total = 0
         self.total_refused = 0
-        self.time_served = 0
+        self.immediately_served = 0
+
+        for worker in self.workers:
+            worker.reset_metrics()
+
+    def get_available(self):
+        return sum(int(worker.is_available()) for worker in self.workers)
 
     def end_shift(self):
-        self.lost_clients = self.queue
-        self.queue = 0
+        self.lost_clients = len(self.queue)
+        self.queue.clear()
+
+        if self.in_service:
+            for worker in self.workers:
+                worker.end_shift()
 
     def next_day(self):
         self.current_time += datetime.timedelta(hours=14)
 
     def end_interval_simulation(self):
+        av_time_served = sum(
+            w.time_served for w in self.workers) / len(self.workers)
+
         self.statistics.add_dataset_entry(self.current_time, self.count_client, int(self.products_total),
-                                          self.total_refused, self.served_clients, self.lost_clients,
-                                          self.queue, int(self.time_served))
+                                          self.total_refused, self.served_clients, self.immediately_served, self.lost_clients, self.in_service,
+                                          len(self.queue), int(av_time_served))
         self.reset_metrics()
