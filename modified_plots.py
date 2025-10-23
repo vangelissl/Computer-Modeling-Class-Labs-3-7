@@ -40,7 +40,7 @@ def plot_metrics(df, title):
     plot_scatter(df, 'A', axes[0][0])
     plot_bar(df, 'p_refusal', axes[1][0])
     plot_scatter(df, 'L_q', axes[0][1])
-    plot_bar(df, 'downtime', axes[1][1])
+    plot_bar(df, 'idle', axes[1][1])
 
     plt.tight_layout()
     plt.show()

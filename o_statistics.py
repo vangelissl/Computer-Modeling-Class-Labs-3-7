@@ -62,7 +62,7 @@ class Statistics(object):
             'L_s': queue_size_avg + occupied_workers_avg,
             'W_q': queue_time_avg,
             'W_s': queue_time_avg + self.client_logs['duration'].mean(),
-            'downtime': 1 - df['utilization'].mean()
+            'idle': 1 - df['utilization'].mean()
         })
 
         return averaged_series
