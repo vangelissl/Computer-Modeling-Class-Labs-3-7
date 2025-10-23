@@ -5,6 +5,7 @@ from pick_up_point import PickUpPoint
 from o_statistics import Statistics
 from datetime import datetime
 from plots import plot_time_distribution, plot_distribution, plot_line
+from modified_plots import plot_metrics
 
 STEP = 0.25
 STEP_COUNT = 40
@@ -25,7 +26,6 @@ def simulation(pup: PickUpPoint = PUP):
 
 def long_term_simulation(days: int, pup=PUP):
     for i in range(days):
-        print(i+1)
         simulation(pup)
         pup.next_day()
 
@@ -96,46 +96,55 @@ def main_menu():
                     print(stats.df.describe())
                     press_key()
             case 11:
-                if not stats.df.empty:
-                    clear_screen()
-                    print(stats.get_averaged_data())
-                    press_key()
+                clear_screen()
+                modified_menu()
+                press_key()
             case _:
                 command_not_found()
 
 
 def modified_menu():
     run = True
-    data = None
+    df = None
     while run:
         clear_screen()
         print('-------------MODIFIED MENU-------------')
         print('1. Create dataset')
-        if data:
+        if df is not None and not df.empty:
             print('2. See graphs')
             print('3. See statistics')
         command = int(input('Choose command: '))
         match(command):
             case 1:
-                break
+                clear_screen()
+                df = create_modified_dataset()
+                press_key()
             case 2:
-                break
+                if df is not None:
+                    plot_metrics(df)
             case 3:
-                break
+                if df is not None:
+                    clear_screen()
+                    print(df.round(3))
+                    press_key()
             case 4:
                 run = False
 
 
 def create_modified_dataset():
-    number_of_workers = int(input('Number of workers: '))
+    min_workers = int(input('Min workers: '))
+    max_workers = int(input('Max workers: '))
     number_of_days = int(input('Number of days: '))
-
-    for workers_num in range(1, number_of_workers):
+    results = {}
+    for c in range(min_workers, max_workers + 1):
         statistics = Statistics(STEP)
         pup = PickUpPoint(statistics, datetime(
-            2025, 1, 1, 10), STEP, number_of_workers)
+            2025, 1, 1, 10), STEP, c)
         long_term_simulation(number_of_days, pup)
+        results[f'c = {c}'] = statistics.get_averaged_data()
 
+    df_sim = pd.DataFrame(results)
+    return df_sim
 
 
 def create_dataset():

@@ -126,10 +126,8 @@ class PickUpPoint(object):
         self.current_time += datetime.timedelta(hours=14)
 
     def end_interval_simulation(self):
-        av_time_served = 0
-        for worker in self.workers:
-            av_time_served += worker.time_served
-        av_time_served /= len(self.workers)
+        av_time_served = sum(
+            w.time_served for w in self.workers) / len(self.workers)
 
         self.statistics.add_dataset_entry(self.current_time, self.count_client, int(self.products_total),
                                           self.total_refused, self.served_clients, self.immediately_served, self.lost_clients, self.in_service,

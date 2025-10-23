@@ -4,8 +4,8 @@ from datetime import datetime
 CLIENT_LOGS_COLUMNS = ['products', 'refused', 'duration', 'time waited']
 STATS_COLUMNS = ['datetime', 'clients total',
                  'products', 'refused', 'served clients', 'immediately served', 'lost clients', 'being served', 'queue', 'throughput', 'utilization']
-AVERAGED_COLUMNS = ['rho', 'q0', 'p_refusal', 'p_q', 'Q',
-                    'A', 'k_occupied', 'L_q', 'l_s', 'W_q', 'W_s', 'downtime']
+AVERAGED_COLUMNS = ['rho', 'q_0', 'p_refusal', 'p_q', 'Q',
+                    'A', 'k_occupied', 'L_q', 'l_s', 'W_q', 'W_s', 'idle']
 
 
 class Statistics(object):
@@ -48,12 +48,13 @@ class Statistics(object):
         queue_time_avg = self.client_logs['time waited'].mean()
         queue_size_avg = df['queue'].mean()
         occupied_workers_avg = df['being served'].mean()
+        clients_num = len(self.client_logs)
 
         averaged_series = pd.Series({
             'rho': df['clients total'].mean() / df['served clients'].mean(),
             'q_0': len(df[(df['queue'] == 0) & (df['being served'] == 0)]) / len(df),
             'p_refusal': df['lost clients'].sum() / df['clients total'].sum(),
-            'p_q': (self.client_logs['time waited'] > 0).sum() / len(self.client_logs),
+            'p_q': (self.client_logs['time waited'] > 0).sum() / clients_num - df['lost clients'].sum() / clients_num,
             'Q': df['utilization'].mean(),
             'A': df['served clients'].mean(),
             'k_occupied': occupied_workers_avg,
