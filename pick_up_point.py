@@ -7,7 +7,6 @@ from client import Client
 
 
 QUEUE_LIMIT = 15
-STEP = 0.25
 
 
 class PickUpPoint(object):

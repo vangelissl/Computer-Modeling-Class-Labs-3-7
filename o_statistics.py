@@ -55,7 +55,7 @@ class Statistics(object):
             'q_0': len(df[(df['queue'] == 0) & (df['being served'] == 0)]) / len(df),
             'p_refusal': df['lost clients'].sum() / df['clients total'].sum(),
             'p_q': (self.client_logs['time waited'] > 0).sum() / clients_num - df['lost clients'].sum() / clients_num,
-            'Q': df['utilization'].mean(),
+            'Q': df['served clients'].sum() / df['clients total'].sum(),
             'A': df['served clients'].mean(),
             'k_occupied': occupied_workers_avg,
             'L_q': queue_size_avg,
