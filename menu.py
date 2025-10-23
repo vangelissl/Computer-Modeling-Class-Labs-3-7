@@ -105,6 +105,7 @@ def main_menu():
 
 def modified_menu():
     run = True
+    days = 0 
     df = None
     while run:
         clear_screen()
@@ -117,11 +118,11 @@ def modified_menu():
         match(command):
             case 1:
                 clear_screen()
-                df = create_modified_dataset()
+                df, days = create_modified_dataset()
                 press_key()
             case 2:
                 if df is not None:
-                    plot_metrics(df)
+                    plot_metrics(df, f'Imitation model results by {days} days')
             case 3:
                 if df is not None:
                     clear_screen()
@@ -144,7 +145,7 @@ def create_modified_dataset():
         results[f'c = {c}'] = statistics.get_averaged_data()
 
     df_sim = pd.DataFrame(results)
-    return df_sim
+    return df_sim, number_of_days
 
 
 def create_dataset():

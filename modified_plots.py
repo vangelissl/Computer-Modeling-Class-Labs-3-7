@@ -31,8 +31,11 @@ def plot_bar(df, metric, ax):
     ax.grid(True, zorder=1)
 
 
-def plot_metrics(df):
+def plot_metrics(df, title):
     fig, axes = plt.subplots(2, 2)
+
+    fig.suptitle(
+        f'{title.title()}', fontsize=16, color='darkblue')
 
     plot_scatter(df, 'A', axes[0][0])
     plot_bar(df, 'p_refusal', axes[1][0])

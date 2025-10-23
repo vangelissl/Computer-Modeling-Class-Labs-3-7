@@ -123,4 +123,4 @@ if __name__ == '__main__':
     df.columns = channels
     df_rounded = df.round(3)
     print(df_rounded)
-    plot_metrics(df)
+    plot_metrics(df, 'analytical model results')
