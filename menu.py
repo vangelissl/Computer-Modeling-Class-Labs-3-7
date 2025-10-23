@@ -8,10 +8,10 @@ from plots import plot_time_distribution, plot_distribution, plot_line
 from modified_plots import plot_metrics
 
 STEP = 0.25
-STEP_COUNT = 40
+STEP_COUNT = int(10 / STEP)
 
 stats = Statistics(STEP)
-PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 3)
+PUP = PickUpPoint(stats, datetime(2025, 1, 1, 10), STEP, 1)
 
 
 def simulation(pup: PickUpPoint = PUP):
