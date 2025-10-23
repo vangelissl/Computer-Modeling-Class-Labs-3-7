@@ -85,8 +85,50 @@ class AnalyticalModel():
         return L_q * q_0
 
 
+def plot_scatter(df, metric, ax):
+    values = df.loc[metric].values
+
+    # Create list of workers (x-axis)
+    workers = list(df.columns.astype(str))
+
+    # Plot scatter
+    ax.scatter(workers, values, s=70, color='magenta', zorder=2)
+
+    ax.set_title(f'{metric.title()} by Number of Workers')
+    ax.set_xlabel('Number of Workers')
+    ax.set_ylabel('A')
+    ax.grid(True, zorder=1)
+
+
+def plot_bar(df, metric, ax):
+    values = df.loc[metric].values
+
+    # Create list of workers (x-axis)
+    workers = list(df.columns.astype(str))
+
+    # Plot scatter
+    ax.bar(workers, values, color="#e86637", width=0.7, zorder=2)
+
+    ax.set_title(f'{metric.title()} by Number of Workers')
+    ax.set_xlabel('Number of Workers')
+    ax.set_ylabel('A')
+    ax.grid(True, zorder=1)
+
+
+def plot_metrics(df):
+    fig, axes = plt.subplots(2, 2)
+
+    plot_scatter(df, 'A', axes[0][0])
+    plot_bar(df, 'p_refusal', axes[1][0])
+    plot_scatter(df, 'L_q', axes[0][1])
+    plot_bar(df, 'downtime', axes[1][1])
+
+    plt.tight_layout()
+    plt.show()
+
+
 data = {'rho': [],
-        'q0': [],
+        'q_0': [],
         'p_refusal': [],
         'p_q': [],
         'Q': [],
@@ -95,24 +137,9 @@ data = {'rho': [],
         'L_q': [],
         'L_s': [],
         'W_q': [],
-        'W_s': []
+        'W_s': [],
+        'idle': []
         }
-
-
-def plot_scatter(df, metric):
-    rho_values = df.loc[metric].values
-
-    # Create list of workers (x-axis)
-    workers = list(df.columns.astype(int))
-
-    # Plot scatter
-    plt.scatter(workers, rho_values, s=70, color='magenta', zorder=2)
-
-    plt.title("Absolute throughput by Number of Workers")
-    plt.xlabel("Number of Workers")
-    plt.ylabel("A")
-    plt.grid(True, zorder=1)
-    plt.show()
 
 
 if __name__ == '__main__':
@@ -121,7 +148,8 @@ if __name__ == '__main__':
     for i in range(3, c + 1):
         model = AnalyticalModel(i, LAM, MU, M)
         data['rho'].append(model.rho)
-        data['q0'].append(model.q_0)
+        data['idle'].append(1 - model.rho)
+        data['q_0'].append(model.q_0)
         data['p_refusal'].append(model.p_refusal)
         data['p_q'].append(model.p_q)
         data['Q'].append(model.Q)
@@ -132,9 +160,9 @@ if __name__ == '__main__':
         data['W_q'].append(model.W_q)
         data['W_s'].append(model.W_s)
 
-    channels = [i for i in range(3, c + 1)]
+    channels = [f'c = {i}' for i in range(3, c + 1)]
     df = pd.DataFrame(data, index=channels).T
-    df.columns = channels  # optional, same as above
+    df.columns = channels
     df_rounded = df.round(3)
     print(df_rounded)
-    plot_scatter(df, 'A')
+    plot_metrics(df)
